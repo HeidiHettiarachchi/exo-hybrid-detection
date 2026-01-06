@@ -6,12 +6,15 @@ import numpy as np
 from matplotlib.patches import Circle
 from scipy.ndimage import median_filter
 from scipy.signal import fftconvolve
+from pathlib import Path
 
 # ===============================
-# Paths
+# Paths (FIXED)
 # ===============================
-OUTPUT_DIR = "backend/data/outputs"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+BASE_DIR = Path(__file__).resolve().parent.parent  # backend folder
+DATA_DIR = BASE_DIR / "data"
+OUTPUT_DIR = DATA_DIR / "outputs"
+OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 # ===============================
 # PSF kernel (from your Colab)
@@ -88,10 +91,7 @@ def detect_exoplanets_from_snr(fits_file):
     # ===============================
     # Save SNR PNG
     # ===============================
-    snr_png = os.path.join(
-        OUTPUT_DIR,
-        os.path.basename(fits_file).replace(".fits", "_snr.png")
-    )
+    snr_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_snr.png")
 
     plt.figure(figsize=(5, 5))
     plt.imshow(snr_map, cmap="inferno", origin="lower")
@@ -111,10 +111,7 @@ def detect_exoplanets_from_snr(fits_file):
     # ===============================
     # Save LR PNG
     # ===============================
-    lr_png = os.path.join(
-        OUTPUT_DIR,
-        os.path.basename(fits_file).replace(".fits", "_lr.png")
-    )
+    lr_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_lr.png")
 
     plt.figure(figsize=(5, 5))
     plt.imshow(lr_map, cmap="viridis", origin="lower")
@@ -124,7 +121,7 @@ def detect_exoplanets_from_snr(fits_file):
     plt.savefig(lr_png, dpi=120)
     plt.close()
 
-    return snr_map, lr_map, detections, snr_png, lr_png
+    return snr_map, lr_map, detections, str(snr_png), str(lr_png)
 
 # ===============================
 # Full Pipeline
@@ -163,17 +160,17 @@ def run_pipeline(fits_files, job_id=None, JOBS=None):
     # GIF or MP4 generation
     # ===============================
     frames = [
-        imageio.imread(os.path.join(OUTPUT_DIR, o["snr_png"]))
+        imageio.imread(OUTPUT_DIR / o["snr_png"])
         for o in outputs
     ]
 
     if len(fits_files) <= 50:
         output_type = "gif"
-        output_file = os.path.join(OUTPUT_DIR, "exoplanet.gif")
+        output_file = OUTPUT_DIR / "exoplanet.gif"
         imageio.mimsave(output_file, frames, fps=3)
     else:
         output_type = "mp4"
-        output_file = os.path.join(OUTPUT_DIR, "exoplanet.mp4")
+        output_file = OUTPUT_DIR / "exoplanet.mp4"
         imageio.mimsave(output_file, frames, fps=3)
 
-    return outputs, output_file, output_type
+    return outputs, str(output_file), output_type

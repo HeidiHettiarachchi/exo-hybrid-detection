@@ -7,13 +7,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from pathlib import Path
-
 from .pipeline import run_pipeline
 
-UPLOAD_DIR = "backend/data/uploads"
-# OUTPUT_DIR = "backend/data/outputs"
-OUTPUT_DIR = Path("backend/data/outputs")
+from pathlib import Path
+
+# ----------------------------
+# Fixed path setup
+# ----------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / "data"
+UPLOAD_DIR = DATA_DIR / "uploads"
+OUTPUT_DIR = DATA_DIR / "outputs"
+
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 from .jobs import JOBS
@@ -27,8 +33,10 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.mount("/outputs", StaticFiles(directory=OUTPUT_DIR), name="outputs")
-
+# ----------------------------
+# Fixed StaticFiles mount
+# ----------------------------
+app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
 
 @app.post("/upload")
 async def upload(files: list[UploadFile] = File(...)):
@@ -63,22 +71,10 @@ async def upload(files: list[UploadFile] = File(...)):
     }
 
 
-
-
 @app.get("/status/{job_id}")
 def status(job_id: str):
     return JOBS.get(job_id, {})
 
-
-
-# @app.get("/download/{file_type}")
-# def download(file_type: str):
-#     path = f"{OUTPUT_DIR}/exoplanet.{file_type}"
-#     return FileResponse(
-#         path,
-#         media_type="application/octet-stream",
-#         filename=f"exoplanet.{file_type}"
-#     )
 
 @app.get("/download/{file_type}")
 def download(file_type: str):
@@ -91,17 +87,3 @@ def download(file_type: str):
         filename=f"exoplanet.{file_type}"
     )
 
-
-# @app.get("/download/{filename}")
-# def download_file(filename: str):
-#     file_path = OUTPUT_DIR / filename
-#     if not file_path.exists():
-#         return {"error": "File not found"}
-#     return FileResponse(file_path, media_type="application/octet-stream", filename=filename)
-
-
-app.mount(
-    "/outputs",
-    StaticFiles(directory="backend/data/outputs"),
-    name="outputs"
-)
