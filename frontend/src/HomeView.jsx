@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "./api";
+import { Link } from "react-router-dom";
 
-const BACKEND_URL = "http://localhost:8000";
 
-export default function HomeView() {
+// const BACKEND_URL = "http://localhost:8000";
+
+export default function HomeView({ results, setResults }) {
   const [files, setFiles] = useState([]);
-  const [results, setResults] = useState(null);
+  // const [results, setResults] = useState(null);
   const [progress, setProgress] = useState(0);
   const [jobId, setJobId] = useState(null);
   const [viewMode, setViewMode] = useState("snr");
@@ -13,21 +15,40 @@ export default function HomeView() {
 
 
   // ---- Upload Handler ----
-  const handleUpload = async (e) => {
-    const data = new FormData();
-    [...e.target.files].forEach((f) => data.append("files", f));
-    setFiles([...e.target.files]);
+  // const handleUpload = async (e) => {
+  //   const data = new FormData();
+  //   [...e.target.files].forEach((f) => data.append("files", f));
+  //   setFiles([...e.target.files]);
 
-    try {
-      const res = await api.post("/upload", data);
-      setResults(res.data);
-      setJobId(res.data.job_id);
-      setProgress(0);
-    } catch (err) {
-      console.error(err);
-      alert("Upload or processing failed!");
-    }
-  };
+  //   try {
+  //     const res = await api.post("/upload", data);
+  //     setResults(res.data);
+  //     setJobId(res.data.job_id);
+  //     setProgress(0);
+  //   } catch (err) {
+  //     console.error(err);
+  //     alert("Upload or processing failed!");
+  //   }
+  // };
+
+  const handleUpload = async (e) => {
+  const fileList = e.target.files;
+  if (!fileList.length) return;
+
+  const data = new FormData();
+  for (let f of fileList) data.append("files", f); // matches backend list[UploadFile]
+
+  try {
+    const res = await api.post("/upload", data);
+    setResults(res.data);
+    setJobId(res.data.job_id);
+    setProgress(0);
+  } catch (err) {
+    console.error(err.response ?? err);
+    alert("Upload or processing failed! Check console.");
+  }
+};
+
 
   // ---- Progress Polling ----
   useEffect(() => {
@@ -88,8 +109,10 @@ export default function HomeView() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>Exoplanet Detection Pipeline</h1>
-
+<h1 style={{ fontSize: "20px" }}>
+  Exoplanet Detection Direct Imaging
+</h1>
+<br />
       {/* ---- Upload Input ---- */}
       <input type="file" multiple onChange={handleUpload} />
 
@@ -126,6 +149,9 @@ export default function HomeView() {
     >
       Download {results.output_type.toUpperCase()}
     </a>
+
+
+
 
     {/* ---- Toggle Buttons SNR / LR ---- */}
     <div style={{ marginTop: 10 }}>

@@ -1,18 +1,270 @@
-import os
-import shutil
-from uuid import uuid4
+# # import os
+# # import shutil
+# # from uuid import uuid4
 
+# # from fastapi import FastAPI, UploadFile, File
+# # from fastapi.middleware.cors import CORSMiddleware
+# # from fastapi.responses import FileResponse
+# # from fastapi.staticfiles import StaticFiles
+# # from app.api.transit import router as transit_router
+
+# # from .pipeline import run_pipeline
+
+# # from pathlib import Path
+
+# # # ----------------------------
+# # # Fixed path setup
+# # # ----------------------------
+# # BASE_DIR = Path(__file__).resolve().parent.parent
+# # DATA_DIR = BASE_DIR / "data"
+# # UPLOAD_DIR = DATA_DIR / "uploads"
+# # OUTPUT_DIR = DATA_DIR / "outputs"
+
+# # UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# # OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# # from .jobs import JOBS
+
+# # app = FastAPI()
+
+# # app.include_router(transit_router)
+
+# # app.add_middleware(
+# #     CORSMiddleware,
+# #     allow_origins=["*"],
+# #     allow_methods=["*"],
+# #     allow_headers=["*"]
+# # )
+
+# # # ----------------------------
+# # # Fixed StaticFiles mount
+# # # ----------------------------
+# # app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
+
+# # @app.post("/upload")
+# # async def upload(files: list[UploadFile] = File(...)):
+# #     job_id = str(uuid4())
+# #     JOBS[job_id] = {"done": 0, "total": 1}
+
+# #     paths = []
+# #     for f in files:
+# #         path = os.path.join(UPLOAD_DIR, f.filename)
+# #         with open(path, "wb") as out:
+# #             out.write(await f.read())
+# #         paths.append(path)
+
+# #     # 👇 IMPORTANT: total known BEFORE processing
+# #     JOBS[job_id]["total"] = len(paths)
+# #     JOBS[job_id]["done"] = 0
+
+# #     detections, output_file, output_type = run_pipeline(
+# #         paths, job_id=job_id, JOBS=JOBS
+# #     )
+
+# #     for d in detections:
+# #         d["snr_image"] = f"/outputs/{d['snr_png']}"
+# #         d["lr_image"] = f"/outputs/{d['lr_png']}"
+
+# #     return {
+# #         "job_id": job_id,
+# #         "detections": detections,
+# #         "output_type": output_type,
+# #         "preview_url": f"/outputs/exoplanet.{output_type}",
+# #         "download_url": f"/outputs/exoplanet.{output_type}"
+# #     }
+
+
+# # @app.get("/status/{job_id}")
+# # def status(job_id: str):
+# #     return JOBS.get(job_id, {})
+
+
+# # @app.get("/download/{file_type}")
+# # def download(file_type: str):
+# #     path = os.path.join(OUTPUT_DIR, f"exoplanet.{file_type}")
+# #     if not os.path.exists(path):
+# #         return {"error": "File not found"}
+# #     return FileResponse(
+# #         path,
+# #         media_type="application/octet-stream",
+# #         filename=f"exoplanet.{file_type}"
+# #     )
+
+# # app/main.py
+# import os
+# from pathlib import Path
+# from fastapi import FastAPI
+# from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.staticfiles import StaticFiles
+# from app.api.transit import router as transit_router
+
+# # ----------------------------
+# # Paths
+# # ----------------------------
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# DATA_DIR = BASE_DIR / "data"
+# UPLOAD_DIR = DATA_DIR / "uploads"
+# OUTPUT_DIR = DATA_DIR / "outputs"
+
+# UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# # ----------------------------
+# # FastAPI App
+# # ----------------------------
+# app = FastAPI(title="Exoplanet Detection API")
+
+# # CORS
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"]
+# )
+
+# # Include transit router
+# app.include_router(transit_router, prefix="/api/transit")
+
+# # Static files
+# app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
+#=======================
+
+
+# import os
+# import shutil
+# from uuid import uuid4
+
+# from fastapi import FastAPI, UploadFile, File
+# from fastapi.middleware.cors import CORSMiddleware
+# from fastapi.responses import FileResponse
+# from fastapi.staticfiles import StaticFiles
+# from app.api.transit import router as transit_router
+# # app/main.py
+
+
+# from .pipeline import run_pipeline
+
+# from pathlib import Path
+
+# # ----------------------------
+# # Fixed path setup
+# # ----------------------------
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# DATA_DIR = BASE_DIR / "data"
+# UPLOAD_DIR = DATA_DIR / "uploads"
+# OUTPUT_DIR = DATA_DIR / "outputs"
+
+# UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+# OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# from .jobs import JOBS
+
+# app = FastAPI()
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# app.include_router(transit_router, prefix="/api/transit")
+
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"]
+# )
+
+# # ----------------------------
+# # Fixed StaticFiles mount
+# # ----------------------------
+# app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
+
+# @app.post("/upload")
+# async def upload(files: list[UploadFile] = File(...)):
+#     job_id = str(uuid4())
+#     JOBS[job_id] = {"done": 0, "total": 1}
+
+#     paths = []
+#     for f in files:
+#         path = os.path.join(UPLOAD_DIR, f.filename)
+#         with open(path, "wb") as out:
+#             out.write(await f.read())
+#         paths.append(path)
+
+#     # 👇 IMPORTANT: total known BEFORE processing
+#     JOBS[job_id]["total"] = len(paths)
+#     JOBS[job_id]["done"] = 0
+
+#     detections, output_file, output_type = run_pipeline(
+#         paths, job_id=job_id, JOBS=JOBS
+#     )
+
+#     for d in detections:
+#         d["snr_image"] = f"/outputs/{d['snr_png']}"
+#         d["lr_image"] = f"/outputs/{d['lr_png']}"
+
+#     return {
+#         "job_id": job_id,
+#         "detections": detections,
+#         "output_type": output_type,
+#         "preview_url": f"/outputs/exoplanet.{output_type}",
+#         "download_url": f"/outputs/exoplanet.{output_type}"
+#     }
+
+
+# @app.get("/status/{job_id}")
+# def status(job_id: str):
+#     return JOBS.get(job_id, {})
+
+
+# @app.get("/download/{file_type}")
+# def download(file_type: str):
+#     path = os.path.join(OUTPUT_DIR, f"exoplanet.{file_type}")
+#     if not os.path.exists(path):
+#         return {"error": "File not found"}
+#     return FileResponse(
+#         path,
+#         media_type="application/octet-stream",
+#         filename=f"exoplanet.{file_type}"
+#     )
+
+
+# app = FastAPI(title="Exoplanet Detection API")
+
+# # CORS for frontend
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
+# # Include router
+# app.include_router(transit_router, prefix="/api/transit")
+
+# # Static files if needed
+# BASE_DIR = Path(__file__).resolve().parent.parent
+# DATA_DIR = BASE_DIR / "data"
+# DATA_DIR.mkdir(exist_ok=True, parents=True)
+# app.mount("/outputs", StaticFiles(directory=str(DATA_DIR / "outputs")), name="outputs")
+
+import os
+from pathlib import Path
+from uuid import uuid4
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
+from app.api.transit import router as transit_router
 from .pipeline import run_pipeline
-
-from pathlib import Path
+from .jobs import JOBS
 
 # ----------------------------
-# Fixed path setup
+# Paths
 # ----------------------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 DATA_DIR = BASE_DIR / "data"
@@ -22,10 +274,12 @@ OUTPUT_DIR = DATA_DIR / "outputs"
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-from .jobs import JOBS
+# ----------------------------
+# FastAPI App
+# ----------------------------
+app = FastAPI(title="Exoplanet Detection API")
 
-app = FastAPI()
-
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,15 +287,19 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# ----------------------------
-# Fixed StaticFiles mount
-# ----------------------------
+# Include transit router
+app.include_router(transit_router, prefix="/api/transit")
+
+# Static files
 app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
 
+# ----------------------------
+# Direct Imaging Upload
+# ----------------------------
 @app.post("/upload")
 async def upload(files: list[UploadFile] = File(...)):
     job_id = str(uuid4())
-    JOBS[job_id] = {"done": 0, "total": 1}
+    JOBS[job_id] = {"done": 0, "total": len(files)}
 
     paths = []
     for f in files:
@@ -50,13 +308,7 @@ async def upload(files: list[UploadFile] = File(...)):
             out.write(await f.read())
         paths.append(path)
 
-    # 👇 IMPORTANT: total known BEFORE processing
-    JOBS[job_id]["total"] = len(paths)
-    JOBS[job_id]["done"] = 0
-
-    detections, output_file, output_type = run_pipeline(
-        paths, job_id=job_id, JOBS=JOBS
-    )
+    detections, output_file, output_type = run_pipeline(paths, job_id=job_id, JOBS=JOBS)
 
     for d in detections:
         d["snr_image"] = f"/outputs/{d['snr_png']}"
@@ -70,20 +322,19 @@ async def upload(files: list[UploadFile] = File(...)):
         "download_url": f"/outputs/exoplanet.{output_type}"
     }
 
-
+# ----------------------------
+# Job Status
+# ----------------------------
 @app.get("/status/{job_id}")
 def status(job_id: str):
     return JOBS.get(job_id, {})
 
-
+# ----------------------------
+# Download
+# ----------------------------
 @app.get("/download/{file_type}")
 def download(file_type: str):
     path = os.path.join(OUTPUT_DIR, f"exoplanet.{file_type}")
     if not os.path.exists(path):
         return {"error": "File not found"}
-    return FileResponse(
-        path,
-        media_type="application/octet-stream",
-        filename=f"exoplanet.{file_type}"
-    )
-
+    return FileResponse(path, media_type="application/octet-stream", filename=f"exoplanet.{file_type}")

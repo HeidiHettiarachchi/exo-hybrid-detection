@@ -4,11 +4,13 @@ pydantic==2.6.2
 numpy==1.25.0
 astropy==7.2.0
 scipy==1.9.2
+scikit-learn==1.2.2
 matplotlib==3.8.1
 python-multipart==0.0.6
 aiofiles==23.1.0
 imageio==2.37.0 
 opencv-python
+pandas==2.3.3
 #npm install react-medium-image-zoom (for frontend)
 #pip install imageio[ffmpeg]
 
