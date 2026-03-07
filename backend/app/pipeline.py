@@ -1,176 +1,872 @@
+# # # import os
+# # # import imageio
+# # # import numpy as np
+# # # import matplotlib.pyplot as plt
+# # # from matplotlib.patches import Circle
+# # # from astropy.io import fits
+# # # from pathlib import Path
+
+# # # from .utils import (
+# # #     gaussian_psf,
+# # #     background_subtract,
+# # #     matched_filter_snr,
+# # #     likelihood_ratio,
+# # #     mask_artifacts,
+# # #     detect_candidates,
+# # # )
+
+# # # BASE_DIR   = Path(__file__).resolve().parent.parent
+# # # DATA_DIR   = BASE_DIR / "data"
+# # # OUTPUT_DIR = DATA_DIR / "outputs"
+# # # OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+# # # # --- Parameters (mirrors Colab parameters cell) ---
+# # # BKG_FILTER_SIZE = 101
+# # # PSF_SIGMA       = 2.0
+# # # PSF_SIZE        = 9
+# # # SNR_THRESHOLD   = 5.0
+# # # MIN_SEP_PIX     = 55
+# # # CIRCLE_RADIUS   = 30
+# # # CIRCLE_COLOR    = "lime"
+# # # SNR_CMAP        = "inferno"
+# # # ANIMATION_FPS   = 3
+# # # EDGE_CROP       = 25
+
+
+# # # def generate_raw_preview(fits_file):
+# # #     with fits.open(fits_file) as hdul:
+# # #         data = hdul[0].data.astype(float) if hdul[0].data is not None else hdul[1].data.astype(float)
+
+# # #     raw_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_raw.png")
+# # #     plt.figure(figsize=(5, 5))
+# # #     plt.imshow(data, cmap="gray", origin="lower")
+# # #     plt.colorbar(label="Intensity")
+# # #     plt.title("Raw FITS Image")
+# # #     plt.tight_layout()
+# # #     plt.savefig(raw_png, dpi=120)
+# # #     plt.close()
+# # #     return str(raw_png)
+
+
+# # # def detect_exoplanets_from_snr(fits_file):
+# # #     # --- Load FITS ---
+# # #     with fits.open(fits_file) as hdul:
+# # #         if hdul[0].data is not None:
+# # #             data = hdul[0].data.astype(float)
+# # #             hdr  = hdul[0].header
+# # #         else:
+# # #             data = hdul[1].data.astype(float)
+# # #             hdr  = hdul[1].header
+
+# # #     # Crop border to kill edge artifacts
+# # #     c    = EDGE_CROP
+# # #     data = data[c:-c, c:-c]
+
+# # #     xc       = data.shape[1] // 2
+# # #     yc       = data.shape[0] // 2
+# # #     pixscale = float(hdr.get("PIXSCALE", 1.0))
+
+# # #     # Background subtraction — no negative clip (keeps dark coronagraph)
+# # #     clean, _ = background_subtract(data, filter_size=BKG_FILTER_SIZE)
+
+# # #     # Mask artifact columns/rows
+# # #     clean = mask_artifacts(clean)
+
+# # #     # Mask coronagraph center
+# # #     yy_g, xx_g = np.mgrid[0:clean.shape[0], 0:clean.shape[1]]
+# # #     dist_from_center = np.hypot(xx_g - xc, yy_g - yc)
+# # #     clean[dist_from_center < MIN_SEP_PIX] = 0
+
+# # #     # Enhanced image — keep negatives so dark center stays dark
+# # #     vmin     = np.percentile(clean, 0.5)
+# # #     vmax     = np.percentile(clean, 99.5)
+# # #     enhanced = np.clip(clean, vmin, vmax)
+# # #     enhanced = (enhanced - vmin) / (vmax - vmin + 1e-12)
+
+# # #     # SNR — clip negatives only for the math
+# # #     clean_snr = np.clip(clean, 0, None)
+# # #     psf       = gaussian_psf(size=PSF_SIZE, sigma=PSF_SIGMA)
+# # #     snr_map   = matched_filter_snr(clean_snr, psf)
+
+# # #     # LR map
+# # #     lr_map = likelihood_ratio(snr_map)
+
+# # #     # Detections — adaptive annular + sharpness + symmetry
+# # #     detections = detect_candidates(
+# # #         snr_map, xc, yc,
+# # #         pixscale=pixscale,
+# # #         snr_threshold=SNR_THRESHOLD,
+# # #         min_sep_pix=MIN_SEP_PIX,
+# # #         circle_radius=CIRCLE_RADIUS,
+# # #         edge_crop=EDGE_CROP,
+# # #     )
+
+# # #     base = os.path.basename(fits_file)
+
+# # #     # Save enhanced PNG
+# # #     enhanced_png = OUTPUT_DIR / base.replace(".fits", "_enhanced.png")
+# # #     fig, ax = plt.subplots(figsize=(5, 5))
+# # #     ax.imshow(enhanced, cmap="gray", origin="lower")
+# # #     ax.set_title(f"Enhanced — {base}", fontsize=8)
+# # #     ax.axis("off")
+# # #     plt.tight_layout()
+# # #     plt.savefig(enhanced_png, dpi=120)
+# # #     plt.close()
+
+# # #     # Save SNR PNG
+# # #     snr_png = OUTPUT_DIR / base.replace(".fits", "_snr.png")
+# # #     fig, ax = plt.subplots(figsize=(5, 5))
+# # #     snr_vmax = np.percentile(snr_map, 99.5)
+# # #     im = ax.imshow(snr_map, cmap=SNR_CMAP, origin="lower", vmin=-3, vmax=snr_vmax)
+# # #     ax.plot(xc, yc, "r+", markersize=10, markeredgewidth=2)
+# # #     for d in detections:
+# # #         ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+# # #                              edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+# # #         ax.text(d["x"] + CIRCLE_RADIUS + 2, d["y"],
+# # #                 f"SNR={d['snr']:.1f}", color=CIRCLE_COLOR, fontsize=7)
+# # #     plt.colorbar(im, ax=ax, label="SNR")
+# # #     ax.set_title(f"SNR Map — {base}", fontsize=8)
+# # #     ax.axis("off")
+# # #     plt.tight_layout()
+# # #     plt.savefig(snr_png, dpi=120)
+# # #     plt.close()
+
+# # #     # Save LR PNG
+# # #     lr_png = OUTPUT_DIR / base.replace(".fits", "_lr.png")
+# # #     fig, ax = plt.subplots(figsize=(5, 5))
+# # #     im2 = ax.imshow(lr_map, cmap="viridis", origin="lower")
+# # #     for d in detections:
+# # #         ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+# # #                              edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+# # #     plt.colorbar(im2, ax=ax, label="LR")
+# # #     ax.set_title(f"LR Map — {base}", fontsize=8)
+# # #     ax.axis("off")
+# # #     plt.tight_layout()
+# # #     plt.savefig(lr_png, dpi=120)
+# # #     plt.close()
+
+# # #     return snr_map, lr_map, detections, str(snr_png), str(lr_png)
+
+
+# # # def run_pipeline(fits_files, job_id=None, JOBS=None):
+# # #     total = len(fits_files)
+
+# # #     if JOBS is not None and job_id is not None:
+# # #         JOBS[job_id]["total"] = total
+# # #         JOBS[job_id]["done"]  = 0
+
+# # #     outputs    = []
+# # #     snr_frames = []
+
+# # #     for f in fits_files:
+# # #         snr_map, lr_map, detections, snr_png, lr_png = detect_exoplanets_from_snr(f)
+
+# # #         outputs.append({
+# # #             "frame":      os.path.basename(f),
+# # #             "snr":        float(np.max(snr_map)),
+# # #             "detections": detections,
+# # #             "snr_png":    os.path.basename(snr_png),
+# # #             "lr_png":     os.path.basename(lr_png),
+# # #         })
+# # #         snr_frames.append(snr_png)
+
+# # #         if JOBS is not None and job_id is not None:
+# # #             JOBS[job_id]["done"] += 1
+
+# # #     # Build animation from SNR frames
+# # #     import cv2
+# # #     frames_raw = [imageio.imread(p) for p in snr_frames if os.path.exists(p)]
+# # #     if frames_raw:
+# # #         h, w   = frames_raw[0].shape[:2]
+# # #         frames = [cv2.resize(f, (w, h)) for f in frames_raw]
+
+# # #         if len(fits_files) <= 50:
+# # #             output_type = "gif"
+# # #             output_file = OUTPUT_DIR / "exoplanet.gif"
+# # #             imageio.mimsave(str(output_file), frames, fps=ANIMATION_FPS)
+# # #         else:
+# # #             output_type = "mp4"
+# # #             output_file = OUTPUT_DIR / "exoplanet.mp4"
+# # #             imageio.mimsave(str(output_file), frames, fps=ANIMATION_FPS)
+# # #     else:
+# # #         output_type = "gif"
+# # #         output_file = OUTPUT_DIR / "exoplanet.gif"
+
+# # #     return outputs, str(output_file), output_type
+
+# # import os
+# # import cv2
+# # import imageio
+# # import zipfile
+# # import numpy as np
+# # import matplotlib.pyplot as plt
+# # from matplotlib.patches import Circle
+# # from astropy.io import fits
+# # from pathlib import Path
+
+# # from .utils import (
+# #     gaussian_psf,
+# #     background_subtract,
+# #     matched_filter_snr,
+# #     likelihood_ratio,
+# #     mask_artifacts,
+# #     detect_candidates,
+# # )
+
+# # BASE_DIR   = Path(__file__).resolve().parent.parent
+# # DATA_DIR   = BASE_DIR / "data"
+# # OUTPUT_DIR = DATA_DIR / "outputs"
+# # OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# # def _load_fits(fits_file):
+# #     with fits.open(fits_file) as hdul:
+# #         if hdul[0].data is not None:
+# #             return hdul[0].data.astype(float), hdul[0].header
+# #         return hdul[1].data.astype(float), hdul[1].header
+
+
+# # def generate_raw_preview(fits_file):
+# #     data, _ = _load_fits(fits_file)
+# #     raw_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_raw.png")
+# #     fig, ax = plt.subplots(figsize=(5, 5))
+# #     v1, v2 = np.percentile(data, [1, 99])
+# #     ax.imshow(data, cmap="gray", origin="lower", vmin=v1, vmax=v2)
+# #     ax.set_title(os.path.basename(fits_file), fontsize=8)
+# #     ax.axis("off")
+# #     plt.tight_layout()
+# #     plt.savefig(raw_png, dpi=120)
+# #     plt.close()
+# #     return str(raw_png)
+
+
+# # def detect_exoplanets_from_snr(fits_file, params):
+# #     BKG_FILTER_SIZE = int(params.get("bkg_filter_size", 101))
+# #     PSF_SIGMA       = float(params.get("psf_sigma", 2.0))
+# #     PSF_SIZE        = int(params.get("psf_size", 9))
+# #     SNR_THRESHOLD   = float(params.get("snr_threshold", 5.0))
+# #     MIN_SEP_PIX     = int(params.get("min_sep_pix", 55))
+# #     CIRCLE_RADIUS   = int(params.get("circle_radius", 30))
+# #     CIRCLE_COLOR    = str(params.get("circle_color", "lime"))
+# #     SNR_CMAP        = str(params.get("snr_cmap", "inferno"))
+# #     EDGE_CROP       = int(params.get("edge_crop", 25))
+
+# #     data, hdr = _load_fits(fits_file)
+
+# #     c    = EDGE_CROP
+# #     data = data[c:-c, c:-c]
+# #     xc   = data.shape[1] // 2
+# #     yc   = data.shape[0] // 2
+# #     pixscale = float(hdr.get("PIXSCALE", 1.0))
+
+# #     clean, _ = background_subtract(data, filter_size=BKG_FILTER_SIZE)
+# #     clean    = mask_artifacts(clean)
+
+# #     yy_g, xx_g = np.mgrid[0:clean.shape[0], 0:clean.shape[1]]
+# #     clean[np.hypot(xx_g - xc, yy_g - yc) < MIN_SEP_PIX] = 0
+
+# #     vmin     = np.percentile(clean, 0.5)
+# #     vmax     = np.percentile(clean, 99.5)
+# #     enhanced = np.clip(clean, vmin, vmax)
+# #     enhanced = (enhanced - vmin) / (vmax - vmin + 1e-12)
+
+# #     clean_snr = np.clip(clean, 0, None)
+# #     psf       = gaussian_psf(size=PSF_SIZE, sigma=PSF_SIGMA)
+# #     snr_map   = matched_filter_snr(clean_snr, psf)
+# #     lr_map    = likelihood_ratio(snr_map)
+
+# #     detections = detect_candidates(
+# #         snr_map, xc, yc, pixscale=pixscale,
+# #         snr_threshold=SNR_THRESHOLD, min_sep_pix=MIN_SEP_PIX,
+# #         circle_radius=CIRCLE_RADIUS, edge_crop=EDGE_CROP,
+# #     )
+
+# #     base = os.path.basename(fits_file).replace(".fits", "")
+
+# #     # Save RAW PNG
+# #     raw_png = OUTPUT_DIR / f"{base}_raw.png"
+# #     raw_data, _ = _load_fits(fits_file)
+# #     fig, ax = plt.subplots(figsize=(5, 5))
+# #     v1, v2 = np.percentile(raw_data, [1, 99])
+# #     ax.imshow(raw_data, cmap="gray", origin="lower", vmin=v1, vmax=v2)
+# #     ax.set_title(f"Raw — {base}", fontsize=8)
+# #     ax.axis("off")
+# #     plt.tight_layout()
+# #     plt.savefig(raw_png, dpi=120, bbox_inches="tight")
+# #     plt.close()
+
+# #     # Save ENHANCED PNG
+# #     enhanced_png = OUTPUT_DIR / f"{base}_enhanced.png"
+# #     fig, ax = plt.subplots(figsize=(5, 5))
+# #     ax.imshow(enhanced, cmap="gray", origin="lower")
+# #     ax.set_title(f"Enhanced — {base}", fontsize=8)
+# #     ax.axis("off")
+# #     plt.tight_layout()
+# #     plt.savefig(enhanced_png, dpi=120, bbox_inches="tight")
+# #     plt.close()
+
+# #     # Save SNR PNG
+# #     snr_png = OUTPUT_DIR / f"{base}_snr.png"
+# #     fig, ax = plt.subplots(figsize=(5, 5))
+# #     snr_vmax = np.percentile(snr_map, 99.5)
+# #     im = ax.imshow(snr_map, cmap=SNR_CMAP, origin="lower", vmin=-3, vmax=snr_vmax)
+# #     ax.plot(xc, yc, "r+", markersize=10, markeredgewidth=2)
+# #     for d in detections:
+# #         ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+# #                              edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+# #         ax.text(d["x"] + CIRCLE_RADIUS + 2, d["y"],
+# #                 f"SNR={d['snr']:.1f}", color=CIRCLE_COLOR, fontsize=7)
+# #     plt.colorbar(im, ax=ax, label="SNR")
+# #     ax.set_title(f"SNR Map — {base}", fontsize=8)
+# #     ax.axis("off")
+# #     plt.tight_layout()
+# #     plt.savefig(snr_png, dpi=120, bbox_inches="tight")
+# #     plt.close()
+
+# #     # Save LR PNG
+# #     lr_png = OUTPUT_DIR / f"{base}_lr.png"
+# #     fig, ax = plt.subplots(figsize=(5, 5))
+# #     im2 = ax.imshow(lr_map, cmap="viridis", origin="lower")
+# #     for d in detections:
+# #         ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+# #                              edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+# #     plt.colorbar(im2, ax=ax, label="LR")
+# #     ax.set_title(f"LR Map — {base}", fontsize=8)
+# #     ax.axis("off")
+# #     plt.tight_layout()
+# #     plt.savefig(lr_png, dpi=120, bbox_inches="tight")
+# #     plt.close()
+
+# #     return {
+# #         "raw_png":      str(raw_png),
+# #         "enhanced_png": str(enhanced_png),
+# #         "snr_png":      str(snr_png),
+# #         "lr_png":       str(lr_png),
+# #         "snr_map":      snr_map,
+# #         "detections":   detections,
+# #     }
+
+
+# # def _make_gif_mp4(png_list, out_path, fps=3):
+# #     frames_raw = [imageio.imread(p) for p in png_list if os.path.exists(p)]
+# #     if not frames_raw:
+# #         return
+# #     h, w = frames_raw[0].shape[:2]
+# #     frames = [cv2.resize(f, (w, h)) for f in frames_raw]
+# #     imageio.mimsave(str(out_path), frames, fps=fps)
+
+
+# # def _make_zip(png_list, zip_path):
+# #     with zipfile.ZipFile(zip_path, "w") as zf:
+# #         for p in png_list:
+# #             if os.path.exists(p):
+# #                 zf.write(p, os.path.basename(p))
+
+
+# # def run_pipeline(fits_files, params=None, job_id=None, JOBS=None):
+# #     if params is None:
+# #         params = {}
+
+# #     fps  = int(params.get("animation_fps", 3))
+# #     anim = "gif" if len(fits_files) <= 50 else "mp4"
+
+# #     if JOBS is not None and job_id is not None:
+# #         JOBS[job_id] = {"done": 0, "total": len(fits_files)}
+
+# #     outputs       = []
+# #     raw_pngs      = []
+# #     enhanced_pngs = []
+# #     snr_pngs      = []
+# #     lr_pngs       = []
+
+# #     for f in fits_files:
+# #         result = detect_exoplanets_from_snr(f, params)
+# #         raw_pngs.append(result["raw_png"])
+# #         enhanced_pngs.append(result["enhanced_png"])
+# #         snr_pngs.append(result["snr_png"])
+# #         lr_pngs.append(result["lr_png"])
+
+# #         outputs.append({
+# #             "frame":        os.path.basename(f),
+# #             "snr":          float(np.max(result["snr_map"])),
+# #             "detections":   result["detections"],
+# #             "raw_png":      os.path.basename(result["raw_png"]),
+# #             "enhanced_png": os.path.basename(result["enhanced_png"]),
+# #             "snr_png":      os.path.basename(result["snr_png"]),
+# #             "lr_png":       os.path.basename(result["lr_png"]),
+# #         })
+
+# #         if JOBS is not None and job_id is not None:
+# #             JOBS[job_id]["done"] += 1
+
+# #     for label, pngs in [("raw", raw_pngs), ("enhanced", enhanced_pngs),
+# #                          ("snr", snr_pngs), ("lr", lr_pngs)]:
+# #         _make_gif_mp4(pngs, OUTPUT_DIR / f"exoplanet_{label}.{anim}", fps=fps)
+
+# #     for label, pngs in [("raw", raw_pngs), ("enhanced", enhanced_pngs),
+# #                          ("snr", snr_pngs), ("lr", lr_pngs)]:
+# #         _make_zip(pngs, str(OUTPUT_DIR / f"exoplanet_{label}.zip"))
+
+# #     return outputs, anim
+
+# import os
+# import cv2
+# import imageio
+# import zipfile
+# import numpy as np
+# import matplotlib.pyplot as plt
+# from matplotlib.patches import Circle
+# from astropy.io import fits
+# from pathlib import Path
+
+# from .utils import (
+#     gaussian_psf,
+#     background_subtract,
+#     matched_filter_snr,
+#     likelihood_ratio,
+#     mask_artifacts,
+#     detect_candidates,
+# )
+
+# BASE_DIR   = Path(__file__).resolve().parent.parent
+# DATA_DIR   = BASE_DIR / "data"
+# OUTPUT_DIR = DATA_DIR / "outputs"
+# OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+# def _load_fits(fits_file):
+#     with fits.open(fits_file) as hdul:
+#         if hdul[0].data is not None:
+#             return hdul[0].data.astype(float), hdul[0].header
+#         return hdul[1].data.astype(float), hdul[1].header
+
+
+# def generate_raw_preview(fits_file):
+#     data, _ = _load_fits(fits_file)
+#     raw_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_raw.png")
+#     fig, ax = plt.subplots(figsize=(5, 5))
+#     v1, v2 = np.percentile(data, [1, 99])
+#     ax.imshow(data, cmap="gray", origin="lower", vmin=v1, vmax=v2)
+#     ax.set_title(os.path.basename(fits_file), fontsize=8)
+#     ax.axis("off")
+#     plt.tight_layout()
+#     plt.savefig(raw_png, dpi=120)
+#     plt.close()
+#     return str(raw_png)
+
+
+# def detect_exoplanets_from_snr(fits_file, params):
+#     BKG_FILTER_SIZE  = int(params.get("bkg_filter_size", 101))
+#     PSF_SIGMA        = float(params.get("psf_sigma", 2.0))
+#     PSF_SIZE         = int(params.get("psf_size", 9))
+#     SNR_THRESHOLD    = float(params.get("snr_threshold", 5.0))
+#     THRESH_FRACTION  = float(params.get("thresh_fraction", 0.5))
+#     MIN_SEP_PIX      = int(params.get("min_sep_pix", 55))
+#     CIRCLE_RADIUS    = int(params.get("circle_radius", 30))
+#     CIRCLE_COLOR     = str(params.get("circle_color", "lime"))
+#     SNR_CMAP         = str(params.get("snr_cmap", "inferno"))
+#     EDGE_CROP        = int(params.get("edge_crop", 25))
+
+#     data, hdr = _load_fits(fits_file)
+
+#     c    = EDGE_CROP
+#     data = data[c:-c, c:-c]
+#     xc   = data.shape[1] // 2
+#     yc   = data.shape[0] // 2
+#     pixscale = float(hdr.get("PIXSCALE", 1.0))
+
+#     # Background subtraction + clip negatives to 0
+#     clean, _ = background_subtract(data, filter_size=BKG_FILTER_SIZE)
+#     clean    = mask_artifacts(clean)
+
+#     # Mask coronagraph center
+#     yy_g, xx_g = np.mgrid[0:clean.shape[0], 0:clean.shape[1]]
+#     clean[np.hypot(xx_g - xc, yy_g - yc) < MIN_SEP_PIX] = 0
+
+#     # Enhanced — 90–99.9 percentile stretch
+#     vmin     = np.percentile(clean, 90)
+#     vmax     = np.percentile(clean, 99.9)
+#     enhanced = np.clip(clean, vmin, vmax)
+#     enhanced = (enhanced - vmin) / (vmax - vmin + 1e-12)
+
+#     # SNR map
+#     psf     = gaussian_psf(size=PSF_SIZE, sigma=PSF_SIGMA)
+#     snr_map = matched_filter_snr(clean, psf)
+#     lr_map  = likelihood_ratio(snr_map)
+
+#     # Detections — THRESH_FRACTION * max_snr
+#     detections = detect_candidates(
+#         snr_map, xc, yc, pixscale=pixscale,
+#         snr_threshold=SNR_THRESHOLD,
+#         thresh_fraction=THRESH_FRACTION,
+#         min_sep_pix=MIN_SEP_PIX,
+#         circle_radius=CIRCLE_RADIUS,
+#         edge_crop=EDGE_CROP,
+#     )
+
+#     base = os.path.basename(fits_file).replace(".fits", "")
+
+#     # Save RAW PNG
+#     raw_png = OUTPUT_DIR / f"{base}_raw.png"
+#     raw_data, _ = _load_fits(fits_file)
+#     fig, ax = plt.subplots(figsize=(5, 5))
+#     v1, v2 = np.percentile(raw_data, [1, 99])
+#     ax.imshow(raw_data, cmap="gray", origin="lower", vmin=v1, vmax=v2)
+#     ax.set_title(f"Raw — {base}", fontsize=8)
+#     ax.axis("off")
+#     plt.tight_layout()
+#     plt.savefig(raw_png, dpi=120, bbox_inches="tight")
+#     plt.close()
+
+#     # Save ENHANCED PNG
+#     enhanced_png = OUTPUT_DIR / f"{base}_enhanced.png"
+#     fig, ax = plt.subplots(figsize=(5, 5))
+#     ax.imshow(enhanced, cmap="gray", origin="lower")
+#     ax.set_title(f"Enhanced — {base}", fontsize=8)
+#     ax.axis("off")
+#     plt.tight_layout()
+#     plt.savefig(enhanced_png, dpi=120, bbox_inches="tight")
+#     plt.close()
+
+#     # Save SNR PNG
+#     snr_png = OUTPUT_DIR / f"{base}_snr.png"
+#     fig, ax = plt.subplots(figsize=(5, 5))
+#     snr_vmax = np.percentile(snr_map, 99.5)
+#     im = ax.imshow(snr_map, cmap=SNR_CMAP, origin="lower", vmin=-3, vmax=snr_vmax)
+#     ax.plot(xc, yc, "r+", markersize=10, markeredgewidth=2)
+#     for d in detections:
+#         ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+#                              edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+#         ax.text(d["x"] + CIRCLE_RADIUS + 2, d["y"],
+#                 f"SNR={d['snr']:.1f}", color=CIRCLE_COLOR, fontsize=7)
+#     plt.colorbar(im, ax=ax, label="SNR")
+#     ax.set_title(f"SNR Map — {base}", fontsize=8)
+#     ax.axis("off")
+#     plt.tight_layout()
+#     plt.savefig(snr_png, dpi=120, bbox_inches="tight")
+#     plt.close()
+
+#     # Save LR PNG
+#     lr_png = OUTPUT_DIR / f"{base}_lr.png"
+#     fig, ax = plt.subplots(figsize=(5, 5))
+#     im2 = ax.imshow(lr_map, cmap="viridis", origin="lower")
+#     for d in detections:
+#         ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+#                              edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+#     plt.colorbar(im2, ax=ax, label="LR")
+#     ax.set_title(f"LR Map — {base}", fontsize=8)
+#     ax.axis("off")
+#     plt.tight_layout()
+#     plt.savefig(lr_png, dpi=120, bbox_inches="tight")
+#     plt.close()
+
+#     return {
+#         "raw_png":      str(raw_png),
+#         "enhanced_png": str(enhanced_png),
+#         "snr_png":      str(snr_png),
+#         "lr_png":       str(lr_png),
+#         "snr_map":      snr_map,
+#         "detections":   detections,
+#     }
+
+
+# def _make_gif_mp4(png_list, out_path, fps=3):
+#     frames_raw = [imageio.imread(p) for p in png_list if os.path.exists(p)]
+#     if not frames_raw:
+#         return
+#     h, w = frames_raw[0].shape[:2]
+#     frames = [cv2.resize(f, (w, h)) for f in frames_raw]
+#     imageio.mimsave(str(out_path), frames, fps=fps)
+
+
+# def _make_zip(png_list, zip_path):
+#     with zipfile.ZipFile(zip_path, "w") as zf:
+#         for p in png_list:
+#             if os.path.exists(p):
+#                 zf.write(p, os.path.basename(p))
+
+
+# def run_pipeline(fits_files, params=None, job_id=None, JOBS=None):
+#     if params is None:
+#         params = {}
+
+#     fps  = int(params.get("animation_fps", 3))
+#     anim = "gif" if len(fits_files) <= 50 else "mp4"
+
+#     if JOBS is not None and job_id is not None:
+#         JOBS[job_id] = {"done": 0, "total": len(fits_files)}
+
+#     outputs       = []
+#     raw_pngs      = []
+#     enhanced_pngs = []
+#     snr_pngs      = []
+#     lr_pngs       = []
+
+#     for f in fits_files:
+#         result = detect_exoplanets_from_snr(f, params)
+#         raw_pngs.append(result["raw_png"])
+#         enhanced_pngs.append(result["enhanced_png"])
+#         snr_pngs.append(result["snr_png"])
+#         lr_pngs.append(result["lr_png"])
+
+#         outputs.append({
+#             "frame":        os.path.basename(f),
+#             "snr":          float(np.max(result["snr_map"])),
+#             "detections":   result["detections"],
+#             "raw_png":      os.path.basename(result["raw_png"]),
+#             "enhanced_png": os.path.basename(result["enhanced_png"]),
+#             "snr_png":      os.path.basename(result["snr_png"]),
+#             "lr_png":       os.path.basename(result["lr_png"]),
+#         })
+
+#         if JOBS is not None and job_id is not None:
+#             JOBS[job_id]["done"] += 1
+
+#     for label, pngs in [("raw", raw_pngs), ("enhanced", enhanced_pngs),
+#                          ("snr", snr_pngs), ("lr", lr_pngs)]:
+#         _make_gif_mp4(pngs, OUTPUT_DIR / f"exoplanet_{label}.{anim}", fps=fps)
+
+#     for label, pngs in [("raw", raw_pngs), ("enhanced", enhanced_pngs),
+#                          ("snr", snr_pngs), ("lr", lr_pngs)]:
+#         _make_zip(pngs, str(OUTPUT_DIR / f"exoplanet_{label}.zip"))
+
+#     return outputs, anim
+
 import os
+import cv2
 import imageio
-from astropy.io import fits
-import matplotlib.pyplot as plt
+import zipfile
 import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
-from scipy.ndimage import median_filter
-from scipy.signal import fftconvolve
+from astropy.io import fits
 from pathlib import Path
 
-# ===============================
-# Paths (FIXED)
-# ===============================
-BASE_DIR = Path(__file__).resolve().parent.parent  # backend folder
-DATA_DIR = BASE_DIR / "data"
+from .utils import (
+    gaussian_psf,
+    background_subtract,
+    matched_filter_snr,
+    likelihood_ratio,
+    mask_artifacts,
+    detect_candidates,
+)
+
+BASE_DIR   = Path(__file__).resolve().parent.parent
+DATA_DIR   = BASE_DIR / "data"
 OUTPUT_DIR = DATA_DIR / "outputs"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-# ===============================
-# PSF kernel (from your Colab)
-# ===============================
-x = np.linspace(-3, 3, 9)
-xx, yy = np.meshgrid(x, x)
-psf = np.exp(-(xx**2 + yy**2) / 2.0)
-psf /= psf.sum()
 
-# ===============================
-# Likelihood Ratio Map
-# ===============================
-def likelihood_ratio(snr_map):
-    mu = np.mean(snr_map)
-    sigma = np.std(snr_map) + 1e-6
-    lr = np.exp((snr_map - mu) / sigma)
-    return lr / lr.max()
+def _set_step(JOBS, job_id, step):
+    if JOBS is not None and job_id is not None:
+        JOBS[job_id]["step"] = step
 
-# ===============================
-# Exoplanet Detection (FIXED)
-# ===============================
-def detect_exoplanets_from_snr(fits_file):
-    """
-    Returns:
-      snr_map (np.ndarray)
-      lr_map  (np.ndarray)
-      detections (list of dicts, JSON-safe)
-      snr_png (str)
-      lr_png  (str)
-    """
 
-    # --- Load FITS ---
+def _load_fits(fits_file):
     with fits.open(fits_file) as hdul:
-        data = hdul[0].data.astype(float)
-        hdr = hdul[0].header
+        if hdul[0].data is not None:
+            return hdul[0].data.astype(float), hdul[0].header
+        return hdul[1].data.astype(float), hdul[1].header
 
-    xc = int(hdr.get("XCENTER", data.shape[1] // 2))
-    yc = int(hdr.get("YCENTER", data.shape[0] // 2))
+
+def generate_raw_preview(fits_file):
+    data, _ = _load_fits(fits_file)
+    raw_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_raw.png")
+    fig, ax = plt.subplots(figsize=(5, 5))
+    v1, v2 = np.percentile(data, [1, 99])
+    ax.imshow(data, cmap="gray", origin="lower", vmin=v1, vmax=v2)
+    ax.set_title(os.path.basename(fits_file), fontsize=8)
+    ax.axis("off")
+    plt.tight_layout()
+    plt.savefig(raw_png, dpi=120)
+    plt.close()
+    return str(raw_png)
+
+
+def detect_exoplanets_from_snr(fits_file, params, JOBS=None, job_id=None):
+    BKG_FILTER_SIZE  = int(params.get("bkg_filter_size", 101))
+    PSF_SIGMA        = float(params.get("psf_sigma", 2.0))
+    PSF_SIZE         = int(params.get("psf_size", 9))
+    SNR_THRESHOLD    = float(params.get("snr_threshold", 5.0))
+    THRESH_FRACTION  = float(params.get("thresh_fraction", 0.5))
+    MIN_SEP_PIX      = int(params.get("min_sep_pix", 55))
+    CIRCLE_RADIUS    = int(params.get("circle_radius", 30))
+    CIRCLE_COLOR     = str(params.get("circle_color", "lime"))
+    SNR_CMAP         = str(params.get("snr_cmap", "inferno"))
+    EDGE_CROP        = int(params.get("edge_crop", 25))
+
+    base = os.path.basename(fits_file).replace(".fits", "")
+
+    _set_step(JOBS, job_id, f"[{base}] Reading FITS file...")
+    data, hdr = _load_fits(fits_file)
+
+    _set_step(JOBS, job_id, f"[{base}] Cropping border artifacts...")
+    c    = EDGE_CROP
+    data = data[c:-c, c:-c]
+    xc   = data.shape[1] // 2
+    yc   = data.shape[0] // 2
     pixscale = float(hdr.get("PIXSCALE", 1.0))
 
-    # --- Background subtraction ---
-    bkg = median_filter(data, size=11)
-    res = data - bkg
+    _set_step(JOBS, job_id, f"[{base}] Subtracting background noise...")
+    clean, _ = background_subtract(data, filter_size=BKG_FILTER_SIZE)
 
-    # --- Matched filtering + SNR ---
-    mf = fftconvolve(res, psf[::-1, ::-1], mode="same")
-    sigma = np.std(mf)
-    snr_map = mf / (sigma + 1e-12)
+    _set_step(JOBS, job_id, f"[{base}] Masking artifact columns & rows...")
+    clean = mask_artifacts(clean)
 
-    # --- Threshold ---
-    max_snr = float(np.max(snr_map))
-    thresh = max(5.0, 0.2 * max_snr)
-    cands = np.argwhere(snr_map > thresh)
+    _set_step(JOBS, job_id, f"[{base}] Masking coronagraph center...")
+    yy_g, xx_g = np.mgrid[0:clean.shape[0], 0:clean.shape[1]]
+    clean[np.hypot(xx_g - xc, yy_g - yc) < MIN_SEP_PIX] = 0
 
-    # --- Filter detections ---
-    detections = []
-    for (y, x) in cands:
-        rho_pix = np.hypot(x - xc, y - yc)
-        if rho_pix > 8:
-            rho_mas = rho_pix * pixscale
-            detections.append({
-                "x": int(x),
-                "y": int(y),
-                "snr": float(snr_map[y, x]),
-                "sep_mas": float(rho_mas)
-            })
+    _set_step(JOBS, job_id, f"[{base}] Enhancing image contrast...")
+    vmin     = np.percentile(clean, 90)
+    vmax     = np.percentile(clean, 99.9)
+    enhanced = np.clip(clean, vmin, vmax)
+    enhanced = (enhanced - vmin) / (vmax - vmin + 1e-12)
 
-    # Keep top 3
-    detections = sorted(detections, key=lambda d: d["snr"], reverse=True)[:3]
+    _set_step(JOBS, job_id, f"[{base}] Building PSF kernel & running matched filter...")
+    psf     = gaussian_psf(size=PSF_SIZE, sigma=PSF_SIGMA)
+    snr_map = matched_filter_snr(clean, psf)
 
-    # --- LR map ---
+    _set_step(JOBS, job_id, f"[{base}] Computing likelihood ratio map...")
     lr_map = likelihood_ratio(snr_map)
 
-    # ===============================
+    _set_step(JOBS, job_id, f"[{base}] Detecting planet candidates...")
+    detections = detect_candidates(
+        snr_map, xc, yc, pixscale=pixscale,
+        snr_threshold=SNR_THRESHOLD,
+        thresh_fraction=THRESH_FRACTION,
+        min_sep_pix=MIN_SEP_PIX,
+        circle_radius=CIRCLE_RADIUS,
+        edge_crop=EDGE_CROP,
+    )
+
+    _set_step(JOBS, job_id, f"[{base}] Rendering output images...")
+
+    # Save RAW PNG
+    raw_png = OUTPUT_DIR / f"{base}_raw.png"
+    raw_data, _ = _load_fits(fits_file)
+    fig, ax = plt.subplots(figsize=(5, 5))
+    v1, v2 = np.percentile(raw_data, [1, 99])
+    ax.imshow(raw_data, cmap="gray", origin="lower", vmin=v1, vmax=v2)
+    ax.set_title(f"Raw — {base}", fontsize=8)
+    ax.axis("off")
+    plt.tight_layout()
+    plt.savefig(raw_png, dpi=120, bbox_inches="tight")
+    plt.close()
+
+    # Save ENHANCED PNG
+    enhanced_png = OUTPUT_DIR / f"{base}_enhanced.png"
+    fig, ax = plt.subplots(figsize=(5, 5))
+    ax.imshow(enhanced, cmap="gray", origin="lower")
+    ax.set_title(f"Enhanced — {base}", fontsize=8)
+    ax.axis("off")
+    plt.tight_layout()
+    plt.savefig(enhanced_png, dpi=120, bbox_inches="tight")
+    plt.close()
+
     # Save SNR PNG
-    # ===============================
-    snr_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_snr.png")
-
-    plt.figure(figsize=(5, 5))
-    plt.imshow(snr_map, cmap="inferno", origin="lower")
-    plt.plot(xc, yc, "r+", markersize=10)
-
+    snr_png = OUTPUT_DIR / f"{base}_snr.png"
+    fig, ax = plt.subplots(figsize=(5, 5))
+    snr_vmax = np.percentile(snr_map, 99.5)
+    im = ax.imshow(snr_map, cmap=SNR_CMAP, origin="lower", vmin=-3, vmax=snr_vmax)
+    ax.plot(xc, yc, "r+", markersize=10, markeredgewidth=2)
     for d in detections:
-        circ = Circle((d["x"], d["y"]), radius=4,
-                      edgecolor="lime", facecolor="none", lw=1.5)
-        plt.gca().add_patch(circ)
-
-    plt.colorbar(label="SNR")
-    plt.title(os.path.basename(fits_file))
+        ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+                             edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+        ax.text(d["x"] + CIRCLE_RADIUS + 2, d["y"],
+                f"SNR={d['snr']:.1f}", color=CIRCLE_COLOR, fontsize=7)
+    plt.colorbar(im, ax=ax, label="SNR")
+    ax.set_title(f"SNR Map — {base}", fontsize=8)
+    ax.axis("off")
     plt.tight_layout()
-    plt.savefig(snr_png, dpi=120)
+    plt.savefig(snr_png, dpi=120, bbox_inches="tight")
     plt.close()
 
-    # ===============================
     # Save LR PNG
-    # ===============================
-    lr_png = OUTPUT_DIR / os.path.basename(fits_file).replace(".fits", "_lr.png")
-
-    plt.figure(figsize=(5, 5))
-    plt.imshow(lr_map, cmap="viridis", origin="lower")
-    plt.colorbar(label="LR")
-    plt.title(os.path.basename(fits_file))
+    lr_png = OUTPUT_DIR / f"{base}_lr.png"
+    fig, ax = plt.subplots(figsize=(5, 5))
+    im2 = ax.imshow(lr_map, cmap="viridis", origin="lower")
+    for d in detections:
+        ax.add_patch(Circle((d["x"], d["y"]), radius=CIRCLE_RADIUS,
+                             edgecolor=CIRCLE_COLOR, facecolor="none", lw=1.5))
+    plt.colorbar(im2, ax=ax, label="LR")
+    ax.set_title(f"LR Map — {base}", fontsize=8)
+    ax.axis("off")
     plt.tight_layout()
-    plt.savefig(lr_png, dpi=120)
+    plt.savefig(lr_png, dpi=120, bbox_inches="tight")
     plt.close()
 
-    return snr_map, lr_map, detections, str(snr_png), str(lr_png)
+    return {
+        "raw_png":      str(raw_png),
+        "enhanced_png": str(enhanced_png),
+        "snr_png":      str(snr_png),
+        "lr_png":       str(lr_png),
+        "snr_map":      snr_map,
+        "detections":   detections,
+    }
 
-# ===============================
-# Full Pipeline
-# ===============================
-def run_pipeline(fits_files, job_id=None, JOBS=None):
-    """
-    Returns:
-      outputs (list of dicts)
-      output_file (str)
-      output_type (gif|mp4)
-    """
 
-    total = len(fits_files)
+def _make_gif_mp4(png_list, out_path, fps=3):
+    frames_raw = [imageio.imread(p) for p in png_list if os.path.exists(p)]
+    if not frames_raw:
+        return
+    h, w = frames_raw[0].shape[:2]
+    frames = [cv2.resize(f, (w, h)) for f in frames_raw]
+    imageio.mimsave(str(out_path), frames, fps=fps)
+
+
+def _make_zip(png_list, zip_path):
+    with zipfile.ZipFile(zip_path, "w") as zf:
+        for p in png_list:
+            if os.path.exists(p):
+                zf.write(p, os.path.basename(p))
+
+
+def run_pipeline(fits_files, params=None, job_id=None, JOBS=None):
+    if params is None:
+        params = {}
+
+    fps  = int(params.get("animation_fps", 3))
+    anim = "gif" if len(fits_files) <= 50 else "mp4"
 
     if JOBS is not None and job_id is not None:
-        JOBS[job_id]["total"] = total
-        JOBS[job_id]["done"] = 0
+        JOBS[job_id] = {"done": 0, "total": len(fits_files), "step": "Starting..."}
 
-    outputs = []
+    outputs       = []
+    raw_pngs      = []
+    enhanced_pngs = []
+    snr_pngs      = []
+    lr_pngs       = []
 
     for f in fits_files:
-        snr_map, lr_map, detections, snr_png, lr_png = detect_exoplanets_from_snr(f)
+        result = detect_exoplanets_from_snr(f, params, JOBS=JOBS, job_id=job_id)
+        raw_pngs.append(result["raw_png"])
+        enhanced_pngs.append(result["enhanced_png"])
+        snr_pngs.append(result["snr_png"])
+        lr_pngs.append(result["lr_png"])
 
         outputs.append({
-            "frame": os.path.basename(f),
-            "snr": float(np.max(snr_map)),
-            "detections": detections,
-            "snr_png": os.path.basename(snr_png),
-            "lr_png": os.path.basename(lr_png)
+            "frame":        os.path.basename(f),
+            "snr":          float(np.max(result["snr_map"])),
+            "detections":   result["detections"],
+            "raw_png":      os.path.basename(result["raw_png"]),
+            "enhanced_png": os.path.basename(result["enhanced_png"]),
+            "snr_png":      os.path.basename(result["snr_png"]),
+            "lr_png":       os.path.basename(result["lr_png"]),
         })
 
         if JOBS is not None and job_id is not None:
             JOBS[job_id]["done"] += 1
 
-    # ===============================
-    # GIF or MP4 generation
-    # ===============================
-    frames = [
-        imageio.imread(OUTPUT_DIR / o["snr_png"])
-        for o in outputs
-    ]
+    _set_step(JOBS, job_id, "Building animations...")
+    for label, pngs in [("raw", raw_pngs), ("enhanced", enhanced_pngs),
+                         ("snr", snr_pngs), ("lr", lr_pngs)]:
+        _make_gif_mp4(pngs, OUTPUT_DIR / f"exoplanet_{label}.{anim}", fps=fps)
 
-    if len(fits_files) <= 50:
-        output_type = "gif"
-        output_file = OUTPUT_DIR / "exoplanet.gif"
-        imageio.mimsave(output_file, frames, fps=3)
-    else:
-        output_type = "mp4"
-        output_file = OUTPUT_DIR / "exoplanet.mp4"
-        imageio.mimsave(output_file, frames, fps=3)
+    _set_step(JOBS, job_id, "Packaging ZIP downloads...")
+    for label, pngs in [("raw", raw_pngs), ("enhanced", enhanced_pngs),
+                         ("snr", snr_pngs), ("lr", lr_pngs)]:
+        _make_zip(pngs, str(OUTPUT_DIR / f"exoplanet_{label}.zip"))
 
-    return outputs, str(output_file), output_type
+    _set_step(JOBS, job_id, "Done!")
+    return outputs, anim

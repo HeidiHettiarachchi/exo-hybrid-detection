@@ -97,3 +97,4 @@ export default function Results({ results, lightCurve, modelResults }) {
     </div>
   );
 }
+

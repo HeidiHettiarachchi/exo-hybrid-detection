@@ -8,10 +8,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
-# ----------------------------
-# LOAD YOUR DATA FILE HERE
-# ----------------------------
-# DATA_PATH = "./transit_model.pkl"  
 
 df = pd.read_csv(DATA_PATH, comment="#", on_bad_lines="skip")
 
@@ -77,9 +73,7 @@ print("Accuracy:", accuracy_score(y_test, clf.predict(X_test)))
 print("Confusion Matrix:\n", confusion_matrix(y_test, clf.predict(X_test)))
 print("Report:\n", classification_report(y_test, clf.predict(X_test)))
 
-# ----------------------------
-# SAVE MODEL (IMPORTANT)
-# ----------------------------
+
 MODEL_DIR = "backend/app/transit"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
@@ -88,4 +82,4 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 with open(MODEL_PATH, "wb") as f:
     cloudpickle.dump(clf, f)
 
-print("✅ Model saved at:", MODEL_PATH)
+print("Model saved at:", MODEL_PATH)
