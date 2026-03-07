@@ -215,6 +215,8 @@ from fastapi.staticfiles import StaticFiles
 import json
 
 from app.api.transit import router as transit_router
+
+from app.api.transit import router as transit_router
 from .pipeline import run_pipeline, generate_raw_preview
 from .jobs import JOBS
 
@@ -302,34 +304,15 @@ async def show_raw(file: UploadFile = File(...)):
     raw_png = generate_raw_preview(path)
     return {"raw_image": f"/outputs/{os.path.basename(raw_png)}"}
 
-# from fastapi import FastAPI
-# from fastapi.middleware.cors import CORSMiddleware
-# from app.api import transit
 
-# app = FastAPI(title="Exoplanet Detection API")
+
 
 # app.add_middleware(
 #     CORSMiddleware,
-#     allow_origins=["http://localhost:3000", "http://localhost:5173"],
+#     allow_origins=["http://localhost:3000"],
 #     allow_credentials=True,
 #     allow_methods=["*"],
 #     allow_headers=["*"],
 # )
 
-# app.include_router(transit.router, prefix="/api/transit")
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.api.transit import router as transit_router
-
-app = FastAPI(title="Exoplanet Detection API")
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(transit_router, prefix="/api/transit")
+# app.include_router(transit_router, prefix="/api/transit")
