@@ -1,6 +1,6 @@
 // import { useState, useRef, useCallback } from "react";
 
-// const API = "http://localhost:8000";
+// const API = "__API_BASE__";
 
 // // ── Helpers ───────────────────────────────────────────────────────────────────
 // function DropZone({ label, accept, icon, multiple = false, files, setFiles }) {
@@ -553,7 +553,7 @@
 // }
 
 import { useState, useRef, useCallback } from "react";
-const API = "http://localhost:8000";
+const API = "__API_BASE__";
 
 function DropZone({ label, accept, icon, multiple=false, files, setFiles }) {
   const ref = useRef(); const [drag, setDrag] = useState(false);

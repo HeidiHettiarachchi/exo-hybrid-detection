@@ -8,7 +8,7 @@
 
 //     try {
 //       const res = await fetch(
-//         "http://localhost:8000/api/transit/generate-model",
+//         "__API_BASE__/api/transit/generate-model",
 //         {
 //           method: "POST",
 //           body: formData,
@@ -60,7 +60,7 @@ export default function UploadCSV({ setModelResults }) {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://localhost:8000/api/transit/generate-model", {
+      const res = await fetch("__API_BASE__/api/transit/generate-model", {
         method: "POST",
         body: formData,
       });

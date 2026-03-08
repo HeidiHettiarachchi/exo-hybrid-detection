@@ -3,7 +3,7 @@
 // // // // // import { Link } from "react-router-dom";
 
 
-// // // // // // const BACKEND_URL = "http://localhost:8000";
+// // // // // // const BACKEND_URL = "__API_BASE__";
 
 // // // // // export default function HomeView({ results, setResults }) {
 // // // // //   const [files, setFiles] = useState([]);
@@ -11,7 +11,7 @@
 // // // // //   const [progress, setProgress] = useState(0);
 // // // // //   const [jobId, setJobId] = useState(null);
 // // // // //   const [viewMode, setViewMode] = useState("snr");
-// // // // //   const BACKEND_URL = "http://localhost:8000";
+// // // // //   const BACKEND_URL = "__API_BASE__";
 // // // // //   const [rawImage, setRawImage] = useState(null);
 
 
@@ -183,7 +183,7 @@
 // // // // //     {/* ---- Download link ---- */}
 // // // // //     <br />
 // // // // //     <a
-// // // // //       href={`http://localhost:8000/download/${results.output_type}`}
+// // // // //       href={`__API_BASE__/download/${results.output_type}`}
 // // // // //       download={`exoplanet.${results.output_type}`}
 // // // // //     >
 // // // // //       Download {results.output_type.toUpperCase()}
@@ -220,7 +220,7 @@
 // // // // //           <p>{d.frame}</p>
 // // // // //           <p>SNR: {d.snr.toFixed(2)}</p>
 // // // // //           <ImageViewer
-// // // // //             src={`http://localhost:8000${viewMode === "snr" ? d.snr_image : d.lr_image}`}
+// // // // //             src={`__API_BASE__${viewMode === "snr" ? d.snr_image : d.lr_image}`}
 // // // // //           />
 // // // // //         </div>
 // // // // //       ))}
@@ -250,7 +250,7 @@
 // // // //   const [viewMode, setViewMode] = useState("snr");
 // // // //   const [rawImage, setRawImage] = useState(null);
 
-// // // //   const BACKEND_URL = "http://localhost:8000";
+// // // //   const BACKEND_URL = "__API_BASE__";
 
 // // // //   // ---------------- Upload Handler ----------------
 // // // //   const handleUpload = async (e) => {
@@ -438,7 +438,7 @@
 // // // import { useState, useRef, useEffect } from "react";
 // // // import { api } from "./api";
 
-// // // const BACKEND_URL = "http://localhost:8000";
+// // // const BACKEND_URL = "__API_BASE__";
 
 // // // const DEFAULT_PARAMS = {
 // // //   bkg_filter_size: 101,
@@ -752,7 +752,7 @@
 // // import { useState, useRef, useEffect } from "react";
 // // import { api } from "./api";
 
-// // const BACKEND_URL = "http://localhost:8000";
+// // const BACKEND_URL = "__API_BASE__";
 
 // // const DEFAULT_PARAMS = {
 // //   bkg_filter_size: 101,
@@ -830,7 +830,7 @@
 // //   if (!navigator.onLine || String(detail).toLowerCase().includes("network")) {
 // //     return {
 // //       title: "Connection Error",
-// //       message: "Could not reach the backend server. Make sure uvicorn is running on http://localhost:8000.",
+// //       message: "Could not reach the backend server. Make sure uvicorn is running on __API_BASE__.",
 // //     };
 // //   }
 // //   return {
@@ -1232,7 +1232,7 @@
 // import { useState, useRef, useEffect } from "react";
 // import { api } from "./api";
 
-// const BACKEND_URL = "http://localhost:8000";
+// const BACKEND_URL = "__API_BASE__";
 
 // const DEFAULT_PARAMS = {
 //   bkg_filter_size: 101,
@@ -1268,7 +1268,7 @@
 //   if (status === 500)
 //     return { title: "Processing Error", message: `The server encountered an error while processing your images. This may be caused by unusual image dimensions, corrupt FITS data, or an extreme parameter value.\n\nDetail: ${String(detail).slice(0, 200)}` };
 //   if (!navigator.onLine)
-//     return { title: "Connection Error", message: "Could not reach the backend server. Make sure uvicorn is running on http://localhost:8000." };
+//     return { title: "Connection Error", message: "Could not reach the backend server. Make sure uvicorn is running on __API_BASE__." };
 //   return {
 //     title: "Something Went Wrong",
 //     message: detail ? `The server returned: "${String(detail).slice(0, 300)}"` : "An unexpected error occurred. Please check that your FITS files are valid and your parameters are reasonable.",
@@ -1575,7 +1575,7 @@
 // // // // import { Link } from "react-router-dom";
 
 
-// // // // // const BACKEND_URL = "http://localhost:8000";
+// // // // // const BACKEND_URL = "__API_BASE__";
 
 // // // // export default function HomeView({ results, setResults }) {
 // // // //   const [files, setFiles] = useState([]);
@@ -1583,7 +1583,7 @@
 // // // //   const [progress, setProgress] = useState(0);
 // // // //   const [jobId, setJobId] = useState(null);
 // // // //   const [viewMode, setViewMode] = useState("snr");
-// // // //   const BACKEND_URL = "http://localhost:8000";
+// // // //   const BACKEND_URL = "__API_BASE__";
 // // // //   const [rawImage, setRawImage] = useState(null);
 
 
@@ -1755,7 +1755,7 @@
 // // // //     {/* ---- Download link ---- */}
 // // // //     <br />
 // // // //     <a
-// // // //       href={`http://localhost:8000/download/${results.output_type}`}
+// // // //       href={`__API_BASE__/download/${results.output_type}`}
 // // // //       download={`exoplanet.${results.output_type}`}
 // // // //     >
 // // // //       Download {results.output_type.toUpperCase()}
@@ -1792,7 +1792,7 @@
 // // // //           <p>{d.frame}</p>
 // // // //           <p>SNR: {d.snr.toFixed(2)}</p>
 // // // //           <ImageViewer
-// // // //             src={`http://localhost:8000${viewMode === "snr" ? d.snr_image : d.lr_image}`}
+// // // //             src={`__API_BASE__${viewMode === "snr" ? d.snr_image : d.lr_image}`}
 // // // //           />
 // // // //         </div>
 // // // //       ))}
@@ -1822,7 +1822,7 @@
 // // //   const [viewMode, setViewMode] = useState("snr");
 // // //   const [rawImage, setRawImage] = useState(null);
 
-// // //   const BACKEND_URL = "http://localhost:8000";
+// // //   const BACKEND_URL = "__API_BASE__";
 
 // // //   // ---------------- Upload Handler ----------------
 // // //   const handleUpload = async (e) => {
@@ -2010,7 +2010,7 @@
 // // import { useState, useRef, useEffect } from "react";
 // // import { api } from "./api";
 
-// // const BACKEND_URL = "http://localhost:8000";
+// // const BACKEND_URL = "__API_BASE__";
 
 // // const DEFAULT_PARAMS = {
 // //   bkg_filter_size: 101,
@@ -2324,7 +2324,7 @@
 // import { useState, useRef, useEffect } from "react";
 // import { api } from "./api";
 
-// const BACKEND_URL = "http://localhost:8000";
+// const BACKEND_URL = "__API_BASE__";
 
 // const DEFAULT_PARAMS = {
 //   bkg_filter_size: 101,
@@ -2402,7 +2402,7 @@
 //   if (!navigator.onLine || String(detail).toLowerCase().includes("network")) {
 //     return {
 //       title: "Connection Error",
-//       message: "Could not reach the backend server. Make sure uvicorn is running on http://localhost:8000.",
+//       message: "Could not reach the backend server. Make sure uvicorn is running on __API_BASE__.",
 //     };
 //   }
 //   return {
@@ -2804,7 +2804,7 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "./api";
 
-const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "__API_BASE__";
 
 const DEFAULT_PARAMS = {
   bkg_filter_size: 101,
@@ -2841,7 +2841,7 @@ function parseError(err) {
   if (status === 500)
     return { title: "Processing Error", message: `The server encountered an error while processing your images. This may be caused by unusual image dimensions, corrupt FITS data, or an extreme parameter value.\n\nDetail: ${String(detail).slice(0, 200)}` };
   if (!navigator.onLine)
-    return { title: "Connection Error", message: "Could not reach the backend server. Make sure uvicorn is running on http://localhost:8000." };
+    return { title: "Connection Error", message: "Could not reach the backend server. Make sure uvicorn is running on __API_BASE__." };
   return {
     title: "Something Went Wrong",
     message: detail ? `The server returned: "${String(detail).slice(0, 300)}"` : "An unexpected error occurred. Please check that your FITS files are valid and your parameters are reasonable.",
