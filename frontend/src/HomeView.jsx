@@ -3051,7 +3051,7 @@ export default function HomeView({ results, setResults }) {
           <ParamRow label="Circle Radius"    paramKey="circle_radius" />
           <ParamRow label="Edge Crop"        paramKey="edge_crop" />
           <ParamRow label="Animation FPS"    paramKey="animation_fps" />
-          <ParamRow label="Top N Candidates (0=all)" paramKey="top_n" min={0} />
+          {/* <ParamRow label="Top N Candidates (0=all)" paramKey="top_n" min={0} /> */}
           <div style={{ minWidth: 150 }}>
             <label style={s.label}>Circle Colour</label>
             <select style={s.select} value={params.circle_color}

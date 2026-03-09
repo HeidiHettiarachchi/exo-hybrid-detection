@@ -53,7 +53,7 @@ def detect_exoplanets_from_snr(fits_file, params, JOBS=None, job_id=None):
     BKG_FILTER_SIZE  = int(params.get("bkg_filter_size", 101))
     PSF_SIGMA        = float(params.get("psf_sigma", 2.0))
     PSF_SIZE         = int(params.get("psf_size", 9))
-    SNR_THRESHOLD    = float(params.get("snr_threshold", 3.0))
+    SNR_THRESHOLD    = float(params.get("snr_threshold", 5.0))
     THRESH_FRACTION  = float(params.get("thresh_fraction", 0.2))
     MIN_SEP_PIX      = int(params.get("min_sep_pix", 30))
     CIRCLE_RADIUS    = int(params.get("circle_radius", 30))

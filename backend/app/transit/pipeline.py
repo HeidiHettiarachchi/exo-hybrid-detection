@@ -498,55 +498,55 @@ from .bls import run_bls
 from .lstm_model import get_detector
 
 
-def detect_periodic_dips(time, flux):
-    """
-    Pure-numpy periodic dip detection — mirrors the JS frontend logic exactly.
-    Condition 1: flux drops below median - 2.5σ
-    Condition 2: at least 2 dips share consistent spacing (= period candidate)
-    """
-    median = np.nanmedian(flux)
-    std    = np.nanstd(flux)
-    threshold = median - 2.5 * std
+# def detect_periodic_dips(time, flux):
+#     """
+#     Pure-numpy periodic dip detection — mirrors the JS frontend logic exactly.
+#     Condition 1: flux drops below median - 2.5σ
+#     Condition 2: at least 2 dips share consistent spacing (= period candidate)
+#     """
+#     median = np.nanmedian(flux)
+#     std    = np.nanstd(flux)
+#     threshold = median - 2.5 * std
 
-    local_dips = []
-    for i in range(2, len(flux) - 2):
-        f = flux[i]
-        if (f < threshold and
-                f <= flux[i-1] and f <= flux[i-2] and
-                f <= flux[i+1] and f <= flux[i+2]):
-            if not local_dips or i - local_dips[-1]["idx"] > 10:
-                local_dips.append({"idx": i, "time": float(time[i]), "flux": float(f)})
+#     local_dips = []
+#     for i in range(2, len(flux) - 2):
+#         f = flux[i]
+#         if (f < threshold and
+#                 f <= flux[i-1] and f <= flux[i-2] and
+#                 f <= flux[i+1] and f <= flux[i+2]):
+#             if not local_dips or i - local_dips[-1]["idx"] > 10:
+#                 local_dips.append({"idx": i, "time": float(time[i]), "flux": float(f)})
 
-    if len(local_dips) < 2:
-        return []
+#     if len(local_dips) < 2:
+#         return []
 
-    results, used = [], set()
-    for a in range(len(local_dips)):
-        if a in used: continue
-        for b in range(a + 1, len(local_dips)):
-            if b in used: continue
-            candidate_period = local_dips[b]["time"] - local_dips[a]["time"]
-            if candidate_period < 0.3: continue
-            group = [local_dips[a], local_dips[b]]
-            for c in range(b + 1, len(local_dips)):
-                spacing = local_dips[c]["time"] - group[-1]["time"]
-                if abs(spacing - candidate_period) / candidate_period < 0.12:
-                    group.append(local_dips[c])
-            if len(group) >= 2:
-                avg_depth = float(np.mean([median - d["flux"] for d in group]))
-                results.append({
-                    "period":     candidate_period,
-                    "t0":         group[0]["time"],
-                    "depth":      avg_depth,
-                    "duration":   candidate_period * 0.05,
-                    "n_transits": len(group),
-                    "source":     "periodic_dip",
-                    "bls_power":  0.0,
-                })
-                for item in group:
-                    used.add(local_dips.index(item))
-                break
-    return results
+#     results, used = [], set()
+#     for a in range(len(local_dips)):
+#         if a in used: continue
+#         for b in range(a + 1, len(local_dips)):
+#             if b in used: continue
+#             candidate_period = local_dips[b]["time"] - local_dips[a]["time"]
+#             if candidate_period < 0.3: continue
+#             group = [local_dips[a], local_dips[b]]
+#             for c in range(b + 1, len(local_dips)):
+#                 spacing = local_dips[c]["time"] - group[-1]["time"]
+#                 if abs(spacing - candidate_period) / candidate_period < 0.12:
+#                     group.append(local_dips[c])
+#             if len(group) >= 2:
+#                 avg_depth = float(np.mean([median - d["flux"] for d in group]))
+#                 results.append({
+#                     "period":     candidate_period,
+#                     "t0":         group[0]["time"],
+#                     "depth":      avg_depth,
+#                     "duration":   candidate_period * 0.05,
+#                     "n_transits": len(group),
+#                     "source":     "periodic_dip",
+#                     "bls_power":  0.0,
+#                 })
+#                 for item in group:
+#                     used.add(local_dips.index(item))
+#                 break
+#     return results
 
 
 def denoise_flux(flux):
