@@ -553,7 +553,10 @@
 // }
 
 import { useState, useRef, useCallback } from "react";
-const API = "import.meta.env.VITE_API_URL";
+// const BACKEND_URL = "http://localhost:8000";
+
+const BACKEND_URL = "https://exo-hybrid-detection-backend.onrender.com";
+
 
 function DropZone({ label, accept, icon, multiple=false, files, setFiles }) {
   const ref = useRef(); const [drag, setDrag] = useState(false);

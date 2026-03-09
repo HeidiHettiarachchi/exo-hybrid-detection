@@ -7,5 +7,9 @@
 import axios from "axios";
 
 export const api = axios.create({
-  baseURL: "https://exo-hybrid-detection-backend.onrender.com/ "
+ 
+    baseURL: "http://localhost:8000"
+       
+
+
 });

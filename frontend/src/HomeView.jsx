@@ -2804,7 +2804,8 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "./api";
 
-const BACKEND_URL = "import.meta.env.VITE_API_URL";
+// const BACKEND_URL = "http://localhost:8000";
+const BACKEND_URL = "https://exo-hybrid-detection-backend.onrender.com";
 
 const DEFAULT_PARAMS = {
   bkg_filter_size: 101,
@@ -2969,7 +2970,8 @@ export default function HomeView({ results, setResults }) {
     if (!jobId || !loading) return;
     const interval = setInterval(async () => {
       try {
-        const res = await api.get(`/status/${jobId}`);
+        const res = await api.get(`${BACKEND_URL}/status/${jobId}`);
+
         if (res.data.step)  setCurrentStep(res.data.step);
         if (res.data.done  !== undefined) setDone(res.data.done);
         if (res.data.total !== undefined) setTotal(res.data.total);
@@ -2993,7 +2995,7 @@ export default function HomeView({ results, setResults }) {
     data.append("params", JSON.stringify(params));
 
     try {
-      const res = await api.post("/upload", data);
+      const res = await api.post(`${BACKEND_URL}/upload`, data);
       setResults(res.data);
       setJobId(res.data.job_id);
     } catch (err) {

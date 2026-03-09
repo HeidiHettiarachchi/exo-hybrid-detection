@@ -444,10 +444,15 @@ export default function Upload({ setResults, setLightCurve, setRawLightCurve }) 
       const form = new FormData();
       form.append("file", file);
 
-      const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
+    // const res = await fetch("http://localhost:8000/api/transit/detect", {
+    //   method: "POST",
+    //   body: form,
+    // });
+
+      const res = await fetch("https://exo-hybrid-detection-backend.onrender.com/api/transit/detect", {
         method: "POST",
         body: form,
-      });
+    });
 
       const json = await res.json();
 
