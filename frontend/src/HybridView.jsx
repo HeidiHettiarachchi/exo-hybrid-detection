@@ -1,6 +1,6 @@
 // import { useState, useRef, useCallback } from "react";
 
-// const API = "__API_BASE__";
+// const API = "import.meta.env.VITE_API_URL";
 
 // // ── Helpers ───────────────────────────────────────────────────────────────────
 // function DropZone({ label, accept, icon, multiple = false, files, setFiles }) {
@@ -553,7 +553,7 @@
 // }
 
 import { useState, useRef, useCallback } from "react";
-const API = "__API_BASE__";
+const API = "import.meta.env.VITE_API_URL";
 
 function DropZone({ label, accept, icon, multiple=false, files, setFiles }) {
   const ref = useRef(); const [drag, setDrag] = useState(false);

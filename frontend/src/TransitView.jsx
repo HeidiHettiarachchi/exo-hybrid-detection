@@ -137,7 +137,7 @@
 // // import PhaseFoldPlot from "./components/PhaseFoldPlot";
 // // import UploadCSV from "./components/UploadCSV";
 
-// // const BACKEND_URL = "__API_BASE__";
+// // const BACKEND_URL = "import.meta.env.VITE_API_URL";
 
 // // // ── Error Dialog ──────────────────────────────────────────────────────────────
 // // function ErrorDialog({ error, onClose }) {
@@ -327,7 +327,7 @@
 // //       clearInterval(stepTimer);
 // //       setError({
 // //         title: "Connection Error",
-// //         message: "Could not reach the backend. Make sure uvicorn is running on __API_BASE__.",
+// //         message: "Could not reach the backend. Make sure uvicorn is running on import.meta.env.VITE_API_URL.",
 // //       });
 // //     } finally {
 // //       setLoading(false);
@@ -484,7 +484,7 @@
 // import PhaseFoldPlot from "./PhaseFoldPlot";
 // import UploadCSV from "./components/UploadCSV";
 
-// const BACKEND_URL = "__API_BASE__";
+// const BACKEND_URL = "import.meta.env.VITE_API_URL";
 
 // // ── Error Dialog ──────────────────────────────────────────────────────────────
 // function ErrorDialog({ error, onClose }) {
@@ -677,7 +677,7 @@
 //       clearInterval(stepTimer);
 //       setError({
 //         title: "Connection Error",
-//         message: "Could not reach the backend. Make sure uvicorn is running on __API_BASE__.",
+//         message: "Could not reach the backend. Make sure uvicorn is running on import.meta.env.VITE_API_URL.",
 //       });
 //     } finally {
 //       setLoading(false);
@@ -878,7 +878,7 @@ import LightCurvePlot from "./components/LightCurvePlot";
 import PhaseFoldPlot from "./components/PhaseFoldPlot";
 import UploadCSV from "./components/UploadCSV";
 
-const BACKEND_URL = "__API_BASE__";
+const BACKEND_URL = "import.meta.env.VITE_API_URL";
 
 // ── Error Dialog ──────────────────────────────────────────────────────────────
 function ErrorDialog({ error, onClose }) {
@@ -1107,7 +1107,7 @@ export default function TransitView() {
       clearInterval(stepTimer);
       setError({
         title: "Connection Error",
-        message: "Could not reach the backend. Make sure uvicorn is running on __API_BASE__.",
+        message: "Could not reach the backend. Make sure uvicorn is running on import.meta.env.VITE_API_URL.",
       });
     } finally {
       setLoading(false);

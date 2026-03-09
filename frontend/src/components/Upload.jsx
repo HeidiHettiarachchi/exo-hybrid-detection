@@ -14,7 +14,7 @@
 // // // // // // //     const form = new FormData();
 // // // // // // //     form.append("file", file);
 
-// // // // // // //     const res = await fetch("__API_BASE__/api/transit/detect", {
+// // // // // // //     const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // // // // // //       method: "POST",
 // // // // // // //       body: form
 // // // // // // //     });
@@ -32,7 +32,7 @@
 // // // // // // //     const form = new FormData();
 // // // // // // //     form.append("file", file);
 
-// // // // // // //     const res = await fetch("__API_BASE__/api/transit/detect", {
+// // // // // // //     const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // // // // // //       method: "POST",
 // // // // // // //       body: form
 // // // // // // //     });
@@ -53,7 +53,7 @@
 // // // // // // //     const form = new FormData();
 // // // // // // //     form.append("file", file);
 
-// // // // // // //     const res = await fetch("__API_BASE__/api/transit/detect", {
+// // // // // // //     const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // // // // // //       method: "POST",
 // // // // // // //       body: form
 // // // // // // //     });
@@ -78,7 +78,7 @@
 // // // // // //       const form = new FormData();
 // // // // // //       form.append("file", file);
 
-// // // // // //       const res = await fetch("__API_BASE__/api/transit/detect", {
+// // // // // //       const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // // // // //         method: "POST",
 // // // // // //         body: form
 // // // // // //       });
@@ -245,7 +245,7 @@
 
 // // // // //         console.log(`✅ Parsed ${lightCurve.length} rows from ${file.name}`);
 
-// // // // //         const res = await fetch("__API_BASE__/api/transit/detect/csv", {
+// // // // //         const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect/csv", {
 // // // // //           method: "POST",
 // // // // //           headers: { "Content-Type": "application/json" },
 // // // // //           body: JSON.stringify({ light_curve: lightCurve })
@@ -261,7 +261,7 @@
 // // // // //         const form = new FormData();
 // // // // //         form.append("file", file);
 
-// // // // //         const res = await fetch("__API_BASE__/api/transit/detect", {
+// // // // //         const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // // // //           method: "POST",
 // // // // //           body: form
 // // // // //         });
@@ -308,7 +308,7 @@
 // // // //       const form = new FormData();
 // // // //       form.append("file", file);
 
-// // // //       const res = await fetch("__API_BASE__/api/transit/detect", {
+// // // //       const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // // //         method: "POST",
 // // // //         body: form,
 // // // //       });
@@ -337,7 +337,7 @@
 // // //     try {
 // // //       const form = new FormData();
 // // //       form.append("file", file);
-// // //       const res = await fetch("__API_BASE__/api/transit/detect", {
+// // //       const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
 // // //         method: "POST", body: form
 // // //       });
 // // //       const json = await res.json();
@@ -444,7 +444,7 @@ export default function Upload({ setResults, setLightCurve, setRawLightCurve }) 
       const form = new FormData();
       form.append("file", file);
 
-      const res = await fetch("__API_BASE__/api/transit/detect", {
+      const res = await fetch("import.meta.env.VITE_API_URL/api/transit/detect", {
         method: "POST",
         body: form,
       });
