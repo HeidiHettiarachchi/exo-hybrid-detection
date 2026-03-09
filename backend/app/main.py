@@ -1,40 +1,3 @@
-# import os
-# from pathlib import Path
-# from uuid import uuid4
-# from fastapi import FastAPI, UploadFile, File, Form
-# from fastapi.middleware.cors import CORSMiddleware
-# from fastapi.responses import FileResponse
-# from fastapi.staticfiles import StaticFiles
-# import json
-# from app.api.hybrid_router import router as hybrid_router
-
-
-# from app.api.transit import router as transit_router
-
-# from app.api.transit import router as transit_router
-# from .pipeline import run_pipeline, generate_raw_preview
-# from .jobs import JOBS
-
-# BASE_DIR   = Path(__file__).resolve().parent.parent
-# DATA_DIR   = BASE_DIR / "data"
-# UPLOAD_DIR = DATA_DIR / "uploads"
-# OUTPUT_DIR = DATA_DIR / "outputs"
-
-# UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-# OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-# app = FastAPI(title="Exoplanet Detection API")
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=["*"],
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-
-# app.include_router(transit_router, prefix="/api/transit")
-# app.mount("/outputs", StaticFiles(directory=str(OUTPUT_DIR)), name="outputs")
-# app.include_router(hybrid_router, prefix="/api/hybrid")
 
 import os
 from pathlib import Path
@@ -59,9 +22,20 @@ OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 app = FastAPI(title="Exoplanet Detection API")
 
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://exoplanet-detection-sp06.onrender.com",
+        "http://localhost:3000",
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )

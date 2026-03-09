@@ -578,14 +578,14 @@ def run_transit_pipeline(df, max_planets=3):
             "message": f"Only {len(time)} valid points — need at least 50."
         }
 
-    # 2. Outlier removal
+    # Outlier removal
     time, raw_flux = remove_outliers(time, raw_flux)
 
-    # 3. Denoise + normalize
+    # Denoise + normalize
     flux_denoised = denoise_flux(raw_flux)
     flux_norm     = normalize_flux(flux_denoised)
 
-    # 4a. BLS detection — threshold lowered from 8 → 5
+    # BLS detection  threshold lowered to 5 
     bls_detections = []
     residual_flux  = flux_norm.copy()
     for _ in range(max_planets):
